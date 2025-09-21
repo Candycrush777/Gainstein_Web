@@ -1,4 +1,4 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// nuxt.config.ts
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -10,5 +10,22 @@ export default defineNuxtConfig({
     '@nuxt/scripts',
     '@nuxt/test-utils',
     '@nuxt/ui'
-  ]
+  ],
+
+  css: [
+    'bootstrap/dist/css/bootstrap.min.css',
+    'mdb-ui-kit/css/mdb.min.css' 
+  ],
+
+  build: {
+    transpile: ['bootstrap', 'mdb-ui-kit'] 
+  },
+
+  app: {
+    head: {
+      script: [
+        { src: 'mdb-ui-kit/js/mdb.min.js', type: 'text/javascript' } 
+      ]
+    }
+  }
 })

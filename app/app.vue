@@ -1,6 +1,14 @@
 <template>
   <div>
     <NuxtRouteAnnouncer />
-    <NuxtWelcome />
+    <LandingPage />
   </div>
 </template>
+
+<script setup>
+import LandingPage from '../components/LandingPage.vue'
+</script>
+
+
+
+
