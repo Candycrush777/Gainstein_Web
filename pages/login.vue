@@ -27,7 +27,7 @@
 <script setup>
 import { ref } from "vue";
 
-const showLogin = ref(true); // lo puedes cambiar a false para abrir con un botón
+const showLogin = ref(true); // cambiar a false para abrir con un botón
 </script>
 
 <style scoped>
