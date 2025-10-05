@@ -8,8 +8,7 @@
     <!-- Sección principal de la landing -->
     <LandingPage />
 
-    <!-- Footer -->
-    <AppFooter />
+ 
   </div>
 </template>
 
@@ -17,7 +16,7 @@
 // Importa tus componentes
 import AppNavbar from '@/components/AppNavbar.vue'
 import LandingPage from '@/components/LandingPage.vue'  
-import AppFooter from '@/components/AppFooter.vue'
+
 </script>
 
 <style scoped>

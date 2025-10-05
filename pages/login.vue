@@ -1,6 +1,10 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
+  <!-- Navbar -->     
   <!-- Modal Login -->
+   <div >
+    
+    <App-navbar/>
   <div v-if="showLogin" class="modal-overlay" @click.self="showLogin = false">
     <div class="modal-content">
       <div class="modal-header">
@@ -19,6 +23,7 @@
           </div>
           <button type="submit" class="btn btn-primary w-100">Iniciar sesión</button>
         </form>
+      </div>
       </div>
     </div>
   </div>

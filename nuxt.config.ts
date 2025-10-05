@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   modules: [
-    '@nuxt/content',
+
     '@nuxt/eslint',
     '@nuxt/image',
     '@nuxt/scripts',
@@ -14,11 +14,13 @@ export default defineNuxtConfig({
 
   css: [
     'bootstrap/dist/css/bootstrap.min.css',
-    'mdb-ui-kit/css/mdb.min.css' 
+    'mdb-ui-kit/css/mdb.min.css',
+     'vuetify/styles',
+    '@mdi/font/css/materialdesignicons.css',
   ],
 
   build: {
-    transpile: ['bootstrap', 'mdb-ui-kit'] 
+    transpile: ['bootstrap', 'mdb-ui-kit','vuetify'] 
   },
 
   app: {

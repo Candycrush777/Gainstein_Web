@@ -3,7 +3,7 @@
   <div>
     <div class="full-background">
       <div class="background-image"></div>
-      <AppNavbar />
+     
       <div class="centered-button">
         <h1 class="button-text">Empieza a ganar dinero YA</h1>
         <img
@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <AppFooter />
+  
 
     <!-- Modal Form -->
     <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
@@ -94,8 +94,7 @@
 </template>
 
 <script setup>
-import AppNavbar from './AppNavbar.vue'
-import AppFooter from './AppFooter.vue'
+
 import { ref, onMounted } from 'vue'
 
 const showForm = ref(false)
