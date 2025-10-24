@@ -135,7 +135,6 @@
   </v-app>
 </template>
 
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AdminNavbar from '~/components/AdminNavbar.vue'
@@ -341,4 +340,3 @@ const activeAffiliates = ref(37) */
 }
 </style>
  
-
