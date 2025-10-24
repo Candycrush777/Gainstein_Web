@@ -3,10 +3,8 @@
     <AdminNavbar />
 
     <v-main class="d-flex">
-      <!-- Sidebar -->
       <AdminSidebar />
 
-      <!-- Contenido principal del dashboard -->
       <v-container fluid class="pa-6" style="flex:1;">
         <h1 class="mb-4">Panel de administración</h1>
         <p>Bienvenido al dashboard, aquí puedes gestionar los datos.</p>
@@ -16,16 +14,16 @@
           <v-col cols="12" md="4">
             <v-card class="pa-4">
               <div class="text-subtitle-1">Usuarios</div>
-              <div class="display-1 font-weight-bold">123</div>
-              <div class="text-caption text--muted">Nuevos últimos 7 días: 12</div>
+              <div class="display-1 font-weight-bold">{{ totalUsers }}</div>
+              <div class="text-caption text--muted">Nuevos últimos 7 días: {{ newUsers7d }}</div>
             </v-card>
           </v-col>
 
           <v-col cols="12" md="4">
             <v-card class="pa-4">
               <div class="text-subtitle-1">Afiliados</div>
-              <div class="display-1 font-weight-bold">42</div>
-              <div class="text-caption text--muted">Activos: 37</div>
+              <div class="display-1 font-weight-bold">{{ totalAffiliates }}</div>
+              <div class="text-caption text--muted">Activos: {{ activeAffiliates }}</div>
             </v-card>
           </v-col>
 
@@ -38,49 +36,66 @@
           </v-col>
         </v-row>
 
-        <!-- Lista de usuarios con búsqueda y paginación -->
+        <!-- Lista de usuarios -->
         <section>
-          <h2 class="h5 mb-3">Lista de usuarios</h2>
-          <p class="text--muted">Aquí puedes buscar y filtrar los usuarios, y verlos paginados.</p>
+          <h1 class="mb-5 text-center">Lista de usuarios</h1>
 
-          <!-- Filtros / búsqueda -->
-          <v-row class="mb-4" align="center">
+          <!-- Inputs de búsqueda -->
+          <v-row class="mb-3" dense>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="searchId"
+                label="Buscar por ID"
+                outlined
+                dense
+                clearable
+              />
+            </v-col>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="searchName"
-                label="Buscar por nombre"
-                dense
+                label="Buscar por Nombre"
                 outlined
+                dense
                 clearable
               />
             </v-col>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="searchEmail"
-                label="Buscar por email"
-                dense
+                label="Buscar por Email"
                 outlined
+                dense
                 clearable
               />
             </v-col>
           </v-row>
 
-          <!-- Cards de usuarios -->
-          <v-row dense>
-            <v-col
+          <!-- Cabecera tipo tabla (v-card morado) -->
+          <v-card class="pa-3 mb-2" color="#8b5cf6" outlined>
+            <v-row>
+              <v-col cols="2"><strong>ID</strong></v-col>
+              <v-col cols="5"><strong>Nombre</strong></v-col>
+              <v-col cols="5"><strong>Email</strong></v-col>
+            </v-row>
+          </v-card>
+
+          <!-- Cards de usuario -->
+          <div>
+            <v-card
               v-for="user in filteredUsers"
               :key="user.id"
-              cols="12"
-              md="6"
-              lg="4"
+              class="pa-3 mb-2"
+              outlined
+              elevation="1"
             >
-              <v-card class="pa-4 mb-3">
-                <div class="text-subtitle-1 font-weight-medium">{{ user.name }}</div>
-                <div class="text-body-2 text--muted">{{ user.email }}</div>
-                <div class="text-caption text--muted">ID: {{ user.id }}</div>
-              </v-card>
-            </v-col>
-          </v-row>
+              <v-row>
+                <v-col cols="2">{{ user.id }}</v-col>
+                <v-col cols="5">{{ user.name }}</v-col>
+                <v-col cols="5">{{ user.email }}</v-col>
+              </v-row>
+            </v-card>
+          </div>
 
           <!-- Paginación -->
           <v-row justify="center" class="mt-4">
@@ -103,22 +118,43 @@ import AdminSidebar from '~/components/admin/AdminSidebar.vue'
 
 definePageMeta({ layout: 'admin' })
 
-// Datos de ejemplo (luego vendrán de la API)
-const users = ref([
-  { id: 1, name: 'Juan Pérez', email: 'juan@email.com' },
-  { id: 2, name: 'Ana Gómez', email: 'ana@email.com' },
-  { id: 3, name: 'Luis Martínez', email: 'luis@email.com' },
-  // ...más usuarios
-])
-
-// Búsqueda
-const searchName = ref('')
-const searchEmail = ref('')
-
 // Paginación
 const page = ref(1)
 const itemsPerPage = 6
 
+// Búsqueda
+const searchId = ref('')
+const searchName = ref('')
+const searchEmail = ref('')
+
+// Datos de usuarios
+const users = ref([])
+
+// Fetch desde API
+const fetchUsers = async () => {
+  try {
+    const { data, error } = await useFetch('/api/list', {
+      method: 'GET',
+      params: { limit: 100 }
+    })
+
+    if (error.value) throw error.value
+    if (data.value?.success) {
+      users.value = data.value.data.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email
+      }))
+    }
+  } catch (err) {
+    console.error('Error al traer usuarios:', err)
+  }
+}
+
+// Ejecutar fetch al montar
+fetchUsers()
+
+// Computed para paginación (igual que antes)
 const filteredUsers = computed(() => {
   const filtered = users.value.filter(u =>
     u.name.toLowerCase().includes(searchName.value.toLowerCase()) &&
@@ -127,27 +163,31 @@ const filteredUsers = computed(() => {
   return filtered.slice((page.value - 1) * itemsPerPage, page.value * itemsPerPage)
 })
 
-const totalPages = computed(() => Math.ceil(users.value.filter(u =>
-  u.name.toLowerCase().includes(searchName.value.toLowerCase()) &&
-  u.email.toLowerCase().includes(searchEmail.value.toLowerCase())
-).length / itemsPerPage))
+const totalPages = computed(() =>
+  Math.ceil(users.value.filter(u =>
+    u.name.toLowerCase().includes(searchName.value.toLowerCase()) &&
+    u.email.toLowerCase().includes(searchEmail.value.toLowerCase())
+  ).length / itemsPerPage)
+)
+
+// Métricas
+const totalUsers = computed(() => users.value.length)
+const newUsers7d = ref(0)
+const totalAffiliates = ref(42)
+const activeAffiliates = ref(37)
 </script>
 
 <style scoped>
-/* Cards blancas con sombra y bordes redondeados */
 .v-card {
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(124, 77, 255, 0.06);
   background: #ffffff;
 }
 
-/* Aseguramos que el main ocupe el alto restante entre navbar y footer */
 .v-main {
   flex: 1;
-  min-height: calc(100vh - 80px - 60px); /* navbar + footer aprox */
+  min-height: calc(100vh - 80px - 60px);
   background: #f8fafc;
 }
 </style>
-
-
 

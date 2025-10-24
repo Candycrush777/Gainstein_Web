@@ -1,22 +1,32 @@
 // server/api/users/list.get.ts
-import { db } from '~/server/utils/db'
+import { db } from "../utils/db"
+import type { RowDataPacket } from "mysql2/promise"
 
 export default defineEventHandler(async (event) => {
   try {
-    // Puedes recibir query params para filtrar/paginar si quieres
+    // Podemos aceptar query params (búsqueda, paginación)
     const query = getQuery(event)
-    const search = query.search ? `%${query.search}%` : '%'
+    const search = query.search ? `%${query.search}%` : `%`
     const limit = query.limit ? parseInt(query.limit as string) : 20
     const offset = query.offset ? parseInt(query.offset as string) : 0
 
-    // Consulta básica: filtra por nombre o email (LIKE) y ordena por nombre
-    const [users] = await db.query(
-      `SELECT id, name, email, created_at
+    // Consulta: unir nombre y apellidos
+    const [users] = await db.query<RowDataPacket[]>(
+      `SELECT 
+        id,
+        CONCAT(first_name, ' ', last_name) AS name,
+        email,
+        role_id,
+        is_active,
+        created_at,
+        last_login
        FROM users
-       WHERE name LIKE ? OR email LIKE ?
-       ORDER BY name ASC
+       WHERE first_name LIKE ? 
+          OR last_name LIKE ? 
+          OR email LIKE ?
+       ORDER BY created_at DESC
        LIMIT ? OFFSET ?`,
-      [search, search, limit, offset]
+      [search, search, search, limit, offset]
     )
 
     return {
@@ -25,16 +35,19 @@ export default defineEventHandler(async (event) => {
       meta: {
         limit,
         offset,
-        count: (users as unknown[]).length
-      }
+        count: users.length,
+      },
     }
   } catch (error) {
-    console.error(error)
+    console.error("list.get.error:", error)
     return {
       success: false,
-      message: 'Error al listar usuarios'
+      message: "Error al listar usuarios",
     }
   }
 })
+
+
+
 
 
