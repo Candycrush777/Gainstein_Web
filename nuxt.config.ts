@@ -1,7 +1,8 @@
 // nuxt.config.ts
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { enabled: false },
+  
 
   modules: [
 
@@ -9,18 +10,17 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxt/scripts',
     '@nuxt/test-utils',
-    '@nuxt/ui'
+    
   ],
 
   css: [
     'bootstrap/dist/css/bootstrap.min.css',
-    'mdb-ui-kit/css/mdb.min.css',
-     'vuetify/styles',
+         'vuetify/styles',
     '@mdi/font/css/materialdesignicons.css',
   ],
 
   build: {
-    transpile: ['bootstrap', 'mdb-ui-kit','vuetify'] 
+    transpile: ['bootstrap', 'vuetify'] 
   },
 
   app: {
