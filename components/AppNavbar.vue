@@ -25,7 +25,7 @@
             <a class="nav-link" href="/login">Login</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">About Gainstein Bot</a>
+            <a class="nav-link" href="/about">About Gainstein Bot</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">Contact</a>

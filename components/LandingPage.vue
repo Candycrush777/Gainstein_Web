@@ -71,6 +71,10 @@
               <input id="name" v-model="formData.name" type="text" class="form-control" required>
             </div>
             <div class="mb-3">
+              <label for="lastName" class="form-label">Apellidos</label>
+              <input id="lastName" v-model="formData.lastName" type="text" class="form-control">
+            </div>
+            <div class="mb-3">
               <label for="email" class="form-label">Email</label>
               <input id="email" v-model="formData.email" type="email" class="form-control" required>
             </div>
@@ -94,26 +98,57 @@
 </template>
 
 <script setup>
-
 import { ref, onMounted } from 'vue'
 
 const showForm = ref(false)
+const submitting = ref(false)
+
 const formData = ref({
   name: '',
+  lastName: '',
   email: '',
   password: '',
   confirmPassword: ''
 })
 
-const submitForm = () => {
+const submitForm = async () => {
+  if (!formData.value.email || !formData.value.password || !formData.value.confirmPassword) {
+    alert('Completa email y contraseñas')
+    return
+  }
   if (formData.value.password !== formData.value.confirmPassword) {
     alert('Las contraseñas no coinciden')
     return
   }
-  console.log('Formulario enviado:', formData.value)
-  alert('Formulario enviado correctamente. Mira la consola')
-  showForm.value = false
-  formData.value = { name: '', email: '', password: '', confirmPassword: '' }
+
+  try {
+    submitting.value = true
+
+    // Llamada real al endpoint de registro
+    const res = await $fetch('/api/register', {
+      method: 'POST',
+      body: {
+        email: formData.value.email.trim(),
+        password: formData.value.password,
+        repeat_password: formData.value.confirmPassword,
+        first_name: formData.value.name || null,
+        last_name: formData.value.lastName || null
+      }
+    })
+
+    if (res?.success) {
+      alert('Registro correcto')
+      showForm.value = false
+      formData.value = { name: '', lastName: '', email: '', password: '', confirmPassword: '' }
+    } else {
+      alert(res?.message || 'No se pudo registrar')
+    }
+  } catch (e) {
+    const msg = e?.statusMessage || e?.data?.message || 'Error en el registro'
+    alert(msg)
+  } finally {
+    submitting.value = false
+  }
 }
 
 const registerWithGoogle = () => {
@@ -122,22 +157,14 @@ const registerWithGoogle = () => {
 
 // Inicializar carousel solo en el cliente
 onMounted(() => {
-  // Esperar a que Bootstrap esté disponible
   const initCarousel = () => {
     if (typeof window !== 'undefined' && window.bootstrap) {
-      const carouselElement = document.querySelector('#carouselExample')
-      if (carouselElement) {
-        new window.bootstrap.Carousel(carouselElement, {
-          interval: 5000
-        })
-      }
+      const el = document.querySelector('#carouselExample')
+      if (el) new window.bootstrap.Carousel(el, { interval: 5000 })
     } else {
-      // Reintentar después de un tiempo si Bootstrap no está disponible
       setTimeout(initCarousel, 500)
     }
   }
-  
-  // Dar tiempo para que se carguen los scripts
   setTimeout(initCarousel, 1000)
 })
 </script>
