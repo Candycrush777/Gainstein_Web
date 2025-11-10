@@ -1,11 +1,12 @@
-// server/api/register.post.ts
 import { db } from "../utils/db";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import { isError } from "h3";
+import { signJwt, setJwtCookie } from "../utils/jwt";
 
 export default defineEventHandler(async (event) => {
   try {
+    // 1) Leer body y validar mínimos
     const body = await readBody<{
       email?: string;
       password?: string;
@@ -29,9 +30,9 @@ export default defineEventHandler(async (event) => {
 
     const email = body.email.trim().toLowerCase();
 
-    // ¿existe email?
+    // 2) Verificar email único
     const [rows] = await db.query<RowDataPacket[]>(
-      "SELECT id FROM users WHERE email = ?",
+      "SELECT id FROM users WHERE email = ? LIMIT 1",
       [email]
     );
     if (rows.length > 0) {
@@ -41,9 +42,10 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    // 3) Hashear password
     const hashedPassword = await bcrypt.hash(body.password, 12);
 
-    // 👇 Insertar también first_name y last_name (opcionales)
+    // 4) Insertar usuario
     const [result] = await db.execute<ResultSetHeader>(
       `INSERT INTO users
         (email, first_name, last_name, password_hash, is_active, email_verified, created_at, updated_at)
@@ -59,33 +61,21 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: "JWT_SECRET no está configurado en el entorno",
-      });
-    }
-    const expiryDays = Number(process.env.JWT_EXPIRES_IN?.replace("d", "")) || 7;
+    // 5) JWT + cookie httpOnly (sesión iniciada tras registro)
+    const token = signJwt({ id: insertId, email });
+    setJwtCookie(event, token);
 
-    const payload = {
-      id: insertId,
-      email,
-      exp: Math.floor(Date.now() / 1000) + expiryDays * 24 * 60 * 60,
-    };
-    const token = jwt.sign(payload, secret);
-
+    // 6) Respuesta
     return {
       success: true,
       message: "Usuario registrado correctamente",
-      token,
       userId: insertId,
     };
   } catch (err) {
-    // si ya es un createError, se respeta el status
     if (isError(err)) throw err;
     console.error("register.error:", err);
     throw createError({ statusCode: 500, statusMessage: "Error en el servidor" });
   }
 });
+
 

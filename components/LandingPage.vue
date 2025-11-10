@@ -65,7 +65,7 @@
           <button type="button" class="btn-close" @click="showForm = false">X</button>
         </div>
         <div class="modal-body">
-          <form @submit.prevent="submitForm">
+          <form ref="formEl"  @submit.prevent="submitForm">
             <div class="mb-3">
               <label for="name" class="form-label">Nombre</label>
               <input id="name" v-model="formData.name" type="text" class="form-control" required>
@@ -98,10 +98,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 
 const showForm = ref(false)
 const submitting = ref(false)
+const formEl = ref(null)
 
 const formData = ref({
   name: '',
@@ -110,6 +111,25 @@ const formData = ref({
   password: '',
   confirmPassword: ''
 })
+
+const resetForm = async () => {
+  // Primero resetear los datos reactivos
+  formData.value = {
+    name: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  }
+  
+  // Esperar a que Vue actualice el DOM
+  await nextTick()
+  
+  // Luego resetear el formulario nativo
+  if (formEl.value) {
+    formEl.value.reset()
+  }
+}
 
 const submitForm = async () => {
   if (!formData.value.email || !formData.value.password || !formData.value.confirmPassword) {
@@ -124,7 +144,6 @@ const submitForm = async () => {
   try {
     submitting.value = true
 
-    // Llamada real al endpoint de registro
     const res = await $fetch('/api/register', {
       method: 'POST',
       body: {
@@ -138,8 +157,8 @@ const submitForm = async () => {
 
     if (res?.success) {
       alert('Registro correcto')
+      await resetForm() // ← Ahora es async
       showForm.value = false
-      formData.value = { name: '', lastName: '', email: '', password: '', confirmPassword: '' }
     } else {
       alert(res?.message || 'No se pudo registrar')
     }
@@ -155,7 +174,6 @@ const registerWithGoogle = () => {
   alert('Aquí se integraría el registro con Google')
 }
 
-// Inicializar carousel solo en el cliente
 onMounted(() => {
   const initCarousel = () => {
     if (typeof window !== 'undefined' && window.bootstrap) {
@@ -168,6 +186,7 @@ onMounted(() => {
   setTimeout(initCarousel, 1000)
 })
 </script>
+
 
 
 <style scoped>
